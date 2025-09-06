@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Birthday Morse</title>
+<style>
+  body {
+    text-align: center;
+    font-family: 'Arial', sans-serif;
+    background: #fce4ec;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+  }
+
+  h1, h2 {
+    color: #e91e63;
+  }
+
+  #morse {
+    font-size: 2em;
+    margin: 50px 20px;
+    min-height: 60px;
+    font-family: monospace;
+  }
+
+  #humanBtn {
+    padding: 12px 25px;
+    font-size: 1.2em;
+    cursor: pointer;
+    background: #e91e63;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    transition: 0.3s;
+    display: none;
+  }
+
+  #humanBtn:hover {
+    background: #f50057;
+  }
+
+  #humanText {
+    display: none;
+    margin-top: 30px;
+    position: relative;
+    z-index: 1;
+  }
+
+  #humanText img {
+    max-width: 300px;
+    border-radius: 15px;
+    margin-top: 20px;
+  }
+
+  canvas#balloons, canvas#hearts {
+    position: fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    pointer-events: none;
+    z-index: -1;
+  }
+</style>
+</head>
+<body>
+
+<h1>Here is a Morse code for you 🎁</h1>
+<div id="morse"></div>
+<button id="humanBtn">Do you want to know the human readable format?</button>
+
+<div id="humanText">
+  <h2>HAPPY BIRTHDAY MY LOVE ❤️</h2>
+  <img src="your-loved-one.jpg" alt="My Love">
+  <audio id="music" src="happy-birthday.mp3"></audio>
+</div>
+
+<canvas id="balloons"></canvas>
+<canvas id="hearts"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+<script>
+// --------- Morse Code Animation with blinking ---------
+const morseText = ".... .- .--. .--. -.-- / -... .. .-. - .... -.. .- -.--";
+const morseDiv = document.getElementById("morse");
+const humanBtn = document.getElementById("humanBtn");
+
+let i = 0;
+function blinkMorse(char) {
+  morseDiv.textContent += char;
+  morseDiv.style.opacity = 0.2;
+  setTimeout(() => {
+    morseDiv.style.opacity = 1;
+    i++;
+    if(i < morseText.length) {
+      setTimeout(() => blinkMorse(morseText[i]), 150);
+    } else {
+      humanBtn.style.display = "inline-block";
+    }
+  }, 100);
+}
+
+blinkMorse(morseText[i]);
+
+// --------- Human-readable reveal ---------
+const humanText = document.getElementById("humanText");
+const music = document.getElementById("music");
+
+humanBtn.addEventListener('click', () => {
+  humanText.style.display = 'block';
+  humanBtn.style.display = 'none';
+  music.play();
+
+  // Continuous balloon/confetti animation
+  setInterval(() => {
+    confetti({
+      particleCount: 3,
+      angle: 60,
+      spread: 55,
+      origin: { x: Math.random() },
+      colors: ['#ff4081', '#f50057', '#ff80ab'],
+      scalar: 1.2
+    });
+    confetti({
+      particleCount: 3,
+      angle: 120,
+      spread: 55,
+      origin: { x: Math.random() },
+      colors: ['#ff4081', '#f50057', '#ff80ab'],
+      scalar: 1.2
+    });
+  }, 500);
+
+  // Start floating hearts
+  initHearts();
+});
+
+// --------- Floating Hearts Animation ---------
+function initHearts() {
+  const canvas = document.getElementById('hearts');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const hearts = [];
+  const colors = ['#ff80ab','#ff4081','#f50057'];
+
+  for(let i=0;i<30;i++) {
+    hearts.push({
+      x: Math.random()*canvas.width,
+      y: Math.random()*canvas.height,
+      size: 10 + Math.random()*20,
+      speed: 1 + Math.random()*2,
+      color: colors[Math.floor(Math.random()*colors.length)]
+    });
+  }
+
+  function drawHeart(x, y, size, color) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.bezierCurveTo(x, y - size/2, x - size, y - size/2, x - size, y);
+    ctx.bezierCurveTo(x - size, y + size/2, x, y + size/1.5, x, y + size);
+    ctx.bezierCurveTo(x, y + size/1.5, x + size, y + size/2, x + size, y);
+    ctx.bezierCurveTo(x + size, y - size/2, x, y - size/2, x, y);
+    ctx.fill();
+  }
+
+  function animate() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    hearts.forEach(h => {
+      h.y -= h.speed;
+      if(h.y + h.size < 0) h.y = canvas.height + h.size;
+      drawHeart(h.x,h.y,h.size,h.color);
+    });
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+}
+</script>
+</body>
+</html>
